@@ -1,0 +1,257 @@
+%===============================================================================
+% Preamble - Mémoire de Stage Master 2 Informatique
+%===============================================================================
+
+%-------------------------------------------------------------------------------
+% Import Packages
+%-------------------------------------------------------------------------------
+
+% Report language. Switch back to [french] if the report must be in French.
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+% Units (\SI, \si) and professional tables (\toprule, \midrule, \bottomrule)
+\usepackage{siunitx}
+\usepackage{booktabs}
+
+\usepackage{amsmath, amssymb, cancel}
+\numberwithin{equation}{section}
+
+\usepackage{minted}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usepackage[hidelinks]{hyperref}
+\usepackage{pgfplots, pgfplotstable, svg}
+\usepackage[font=small]{caption}
+\usepackage[symbol]{footmisc}
+\usepackage{parskip}
+\usepackage{subcaption}
+\usepackage{enumerate}
+\usepackage[none]{hyphenat}
+% Hyphenation is disabled above, so give TeX some slack on lines containing
+% long \texttt{} tokens (file paths, option names) to avoid overfull boxes.
+\emergencystretch=3em
+\usepackage{tocloft}
+
+\usepackage[
+    left=2.5cm,
+    right=2.5cm,
+    top=3cm,
+    bottom=3cm
+]{geometry}
+
+% Strikethrough for the \del and \replace annotations.
+% [normalem] keeps \emph as italics instead of turning it into an underline.
+\usepackage[normalem]{ulem}
+
+\usepackage{etoolbox}
+
+% Hide automatic References title
+\patchcmd{\thebibliography}{\section\*{\refname}}{}{}{}
+
+\usepackage{sectsty}
+
+\sectionfont{\centering}
+\partfont{\centering}
+
+
+%-------------------------------------------------------------------------------
+% Produce Shorthand Commands
+%-------------------------------------------------------------------------------
+
+% Drafting marker: highlights what is still to be done or to be checked.
+% Set \todoitemsoff in main.tex to hide every marker in the final version.
+\newcommand{\todoitem}[1]{\textcolor{red}{\textbf{[TODO:} #1\textbf{]}}}
+\newcommand{\todoitemsoff}{\renewcommand{\todoitem}[1]{}}
+
+% Supervisor annotations: text written on top of the student's draft, shown in
+% colour so it is obvious who wrote what.
+%
+%   \add{...}            text added by the supervisor            (blue)
+%   \add[teal]{...}      same, in any xcolor colour name
+%   \del{...}            text to remove, struck through          (red)
+%   \replace{old}{new}   struck-through old, followed by the new text
+%   \note{...}           side remark, not part of the text       (orange)
+%
+%   \annotationsplain    accept everything: keep the added and replacement
+%                        text in normal black, drop what is struck through,
+%                        keep the \note remarks as plain text
+%   \annotationsoff      same, but drop the \note remarks as well
+%
+% Put \annotationsoff (and \todoitemsoff) right after \begin{document} to
+% produce a clean version for the jury.
+\definecolor{addcolour}{HTML}{0B5FA5}
+\definecolor{delcolour}{HTML}{A11616}
+\definecolor{notecolour}{HTML}{B35C00}
+
+\newcommand{\add}[2][addcolour]{\textcolor{#1}{#2}}
+\newcommand{\del}[1]{\textcolor{delcolour}{\sout{#1}}}
+\newcommand{\replace}[2]{\del{#1}\ \add{#2}}
+\newcommand{\note}[2][notecolour]{\textcolor{#1}{\small$\blacktriangleright$\,\textit{#2}}}
+
+% \begin{cut} ... \end{cut} removes a whole passage. Use it instead of \del
+% when the text spans several paragraphs or contains macros such as \SI or
+% \todoitem: \del strikes text through with \sout, which cannot cope with
+% either. The passage is shown in colour but not struck through.
+\newenvironment{cut}%
+    {\par\color{delcolour}\itshape[cut]\ \ignorespaces}%
+    {\par}
+
+\newcommand{\annotationsplain}{%
+    \renewcommand{\add}[2][]{##2}%
+    \renewcommand{\del}[1]{}%
+    \renewcommand{\replace}[2]{##2}%
+    \renewcommand{\note}[2][]{##2}%
+    \renewenvironment{cut}{\setbox0=\vbox\bgroup}{\egroup}%
+}
+\newcommand{\annotationsoff}{%
+    \renewcommand{\add}[2][]{##2}%
+    \renewcommand{\del}[1]{}%
+    \renewcommand{\replace}[2]{##2}%
+    \renewcommand{\note}[2][]{}%
+    \renewenvironment{cut}{\setbox0=\vbox\bgroup}{\egroup}%
+}
+
+\newcommand{\pfrac}[2]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\diffrac}[2]{\dfrac{d #1}{d #2}}
+
+\renewcommand{\bf}[1]{\mathbf{#1}}
+\renewcommand{\cal}[1]{\mathcal{#1}}
+\renewcommand{\Re}[1]{\mathbb{R}}
+
+\newcommand{\lf}{\left}
+\newcommand{\rt}{\right}
+\newcommand{\mbf}{\mathbf}
+
+
+%-------------------------------------------------------------------------------
+% Adjust Contents, Figure and Table Lists
+%-------------------------------------------------------------------------------
+
+\renewcommand{\cfttoctitlefont}
+    {\hspace*{\fill}\LARGE\bfseries}
+
+\renewcommand{\cftaftertoctitle}
+    {\hspace*{\fill}}
+
+\renewcommand{\contentsname}{Sommaire}
+
+\renewcommand{\cftlottitlefont}
+    {\hspace*{\fill}\Large\bfseries}
+
+\renewcommand{\cftafterlottitle}
+    {\hspace*{\fill}}
+
+\renewcommand{\cftloftitlefont}
+    {\hspace*{\fill}\Large\bfseries}
+
+\renewcommand{\cftafterloftitle}
+    {\hspace*{\fill}}
+
+
+%-------------------------------------------------------------------------------
+% Format of Sections
+%-------------------------------------------------------------------------------
+
+\newcommand{\thenewsection}{\arabic{section}.}
+
+\renewcommand{\thesection}{\arabic{section}.}
+\renewcommand{\thesubsection}
+    {\arabic{section}.\arabic{subsection}.}
+
+\renewcommand{\thesubsubsection}
+    {\arabic{section}.\arabic{subsection}.\arabic{subsubsection}.}
+
+\renewcommand{\theequation}
+    {\thenewsection\arabic{equation}}
+
+
+%-------------------------------------------------------------------------------
+% Bibliography
+%-------------------------------------------------------------------------------
+
+\bibliographystyle{plain}
+
+
+%-------------------------------------------------------------------------------
+% Title style
+%-------------------------------------------------------------------------------
+
+\title{
+
+\begin{tikzpicture}
+    \node at (0,0)
+    {\includegraphics[
+        width=0.4\columnwidth
+    ]{Universite_Bordeaux.jpg}};
+\end{tikzpicture}
+
+\vskip 0.2in
+\par
+
+\textbf{
+    Automatic tuning of the IO500 benchmark parameters
+    with Bayesian Optimization
+}
+% French title (if the report is written in French):
+% Optimisation automatique des paramètres d'exécution du benchmark IO500
+
+\vskip 0.5in
+\par
+
+\large{
+    M2 Computer Science \\
+    Internship Report
+
+    \vskip 0.15in
+
+    Inria Centre at the University of Bordeaux
+
+    \vskip 0.10in
+}
+
+}
+
+\author{
+    \todoitem{student name} \\
+    \small Supervisors: \todoitem{supervisor names}
+}
+
+
+
+
+%-------------------------------------------------------------------------------
+% Date
+%-------------------------------------------------------------------------------
+
+\date{\today}
+
+
+%-------------------------------------------------------------------------------
+% PGFPlots compatibility
+%-------------------------------------------------------------------------------
+
+\pgfplotsset{compat=1.18}
+
+
+%-------------------------------------------------------------------------------
+% Footnote symbols
+%-------------------------------------------------------------------------------
+
+\makeatletter
+
+\renewcommand*{\@fnsymbol}[1]{%
+    \ifcase#1
+    \or
+    \or
+    \or
+    \or $\star$
+    \or $\dagger\ $
+    \or $\ddagger\ $
+    \else
+    @ctrerr
+    \fi
+}
+
+\makeatother

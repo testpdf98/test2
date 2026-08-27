@@ -1,0 +1,63 @@
+\section{Background}
+\subsection{IO500}
+
+\subsubsection{Motivation and purpose}
+
+High Performance Computing (HPC) systems are used to run applications
+that process large amounts of data. As a result, the performance of the
+storage system and I/O operations can have a significant impact on the
+overall performance of an application.
+
+However, evaluating I/O performance is not straightforward. Different
+storage systems can have different architectures and configurations, and
+their performance can vary depending on the workload and the way the
+system is used. A common and reproducible methodology is therefore
+needed to compare the I/O performance of different systems.
+
+The IO500 benchmark suite was created to address this need. It provides
+a common methodology for evaluating the I/O performance of HPC storage
+systems using several workloads and a defined set of execution rules.
+The benchmark is developed together with the HPC community and is based
+on existing open-source benchmarks~\cite{io500about}.
+
+The results obtained with IO500 can be used to compare different storage
+systems and configurations. They are also collected in public IO500
+lists, which provide a common reference for the HPC community. This
+makes IO500 useful not only for measuring performance, but also for
+studying how different systems and configurations affect I/O performance.
+
+In this work, IO500 is used as the target benchmark for studying
+automated configuration tuning. The objective is to determine whether a
+search strategy can find a high-performing configuration while reducing
+the number of benchmark evaluations required.
+
+\subsubsection{Benchmark structure}
+
+IO500 is not a single benchmark program. It is a benchmark suite that
+combines several workloads under a common set of execution and
+submission rules. The suite uses existing open-source benchmarks and
+defines how they should be executed so that results can be compared
+across systems~\cite{io500about}.
+
+The benchmark covers different aspects of storage performance. In
+particular, it includes workloads targeting data transfer performance,
+metadata operations, and file-system search operations. Each workload
+produces an individual performance measurement. These measurements are
+then combined to produce an overall IO500 score.
+
+The IO500 website publishes the results of submitted runs together with
+information about the tested system. This information includes, among
+other elements, the storage system, file system, number of client nodes,
+number of processes, and measured performance. The results are organised
+into several lists, including Production, Research, and Full lists
+\cite{io500list}.
+
+The benchmark therefore provides both individual measurements and an
+overall score. Keeping the individual results is useful because two
+systems with similar overall scores may have very different performance
+characteristics.
+
+The following subsection describes the main workloads used by IO500 and
+the type of I/O operation measured by each of them.
+\subsection{IOPS}
+\subsection{Bayesian Optimization}

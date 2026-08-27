@@ -1,0 +1,213 @@
+\section{Introduction}
+
+% =============================================================================
+% GOAL (2-3 pages).
+%
+% The narrative arc to preserve:
+%   I/O is a bottleneck -> IO500 measures it -> the score depends on the
+%   configuration -> tuning it properly is intractable -> we make it cheap ->
+%   here is what we found.
+%
+% Written so far: context and problem statement, up to the research question.
+% Still to write: objectives, contributions, organisation of the report (the
+% bullets at the end of this file). Follow the same style: continuous prose,
+% one idea per paragraph, no bullet lists in the final text.
+% =============================================================================
+
+High Performance Computing (HPC) systems are used to run large-scale
+scientific and engineering applications.
+\replace{These applications often process very large amounts of data and use
+many computing resources in parallel.}{The applications use many compute
+resources in parallel and often process large amounts of data.}
+\add{Therefore,} \replace{their performance}{an application's performance} does not
+only depend on the computing power of the system\add{, but also on the
+performance of its storage infrastructure}.
+\del{The ability to access and store data efficiently is also an important
+factor.}
+In many HPC workloads, I/O operations \replace{can become a bottleneck and
+limit the}{become the bottleneck that limits} overall application performance.
+
+\del{This problem is becoming more important as the amount of data produced and
+processed by HPC applications continues to increase.
+The growth of data can be faster than the ability of storage systems to absorb
+and process it.
+Improving I/O performance is therefore an important research and engineering
+problem in HPC.}
+
+Parallel file systems \add{(PFS)} such as Lustre\add{~\cite{lustre}},
+BeeGFS\add{~\cite{beegfs}} and GPFS\add{~\cite{gpfs}} are commonly used to
+provide high-performance storage in HPC environments.
+\add{In a PFS, the storage capacity is exposed as a set of logical units called
+Object Storage Targets (OSTs). When a file is written, it is split into fixed-size chunks that
+are sent in parallel to several targets, so that the bandwidth of many storage
+devices is used at once. This process is known as striping and is illustrated
+in Figure~\ref{fig:striping}. How many targets a file is spread over, called
+the stripe count, and how large each chunk is, called the stripe size, are
+configuration choices rather than fixed properties of the system.}
+\add{Therefore,} \replace{These systems}{a PFS} exposes configuration parameters
+that can affect I/O performance.
+\replace{For example}{Beyond striping}, performance can \add{also} depend on
+\del{the striping configuration, the number of storage targets used,} the
+transfer size, the number of processes, or the placement of processes on
+compute nodes.
+The best values for these parameters are not necessarily the same for every
+machine: a configuration that performs well on one system may perform poorly
+on another one.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.62\textwidth]{figures/striping.png}
+    \caption{Striping in a parallel file system. A file created on a compute
+             node is split into fixed-size chunks, which are written in
+             parallel to storage targets hosted by the storage servers. Here
+             the stripe count is three, so the file is spread over three of
+             the eight available targets.}
+    \label{fig:striping}
+\end{figure}
+
+
+\add{To evaluate the performance of these systems, we rely on benchmarks.
+A benchmark is a program designed to stress a specific part of a system under
+controlled and reproducible conditions, so that the measurements it produces
+can be compared across machines and configurations~\cite{hoefler}.
+For I/O, two of the most widely used benchmarks are IOR~\cite{ior}, which
+measures the bandwidth reached by large parallel read and write operations,
+and mdtest~\cite{mdtest}, which measures the rate at which metadata operations
+such as creating, opening and removing files are performed.
+A different approach is taken by mini-applications, or miniapps~\cite{mantevo},
+which reproduce the access pattern of a real scientific application in a
+reduced and self-contained form, and therefore measure performance under a
+workload closer to production use.
+Each of these benchmarks characterises one aspect of the system, and none of
+them alone describes the storage system as a whole.}
+
+\replace{This}{Thus, the variety of parameters and access patterns} makes the
+evaluation of I/O performance difficult\replace{.
+A}{: a} benchmark must not only measure the performance of the storage system,
+but \del{should} also provide a meaningful way to compare different systems and
+configurations.
+\add{For this reason, the HPC community maintains rankings in which every
+system runs the same benchmarks under a common set of rules, so that the
+resulting scores can be compared and ordered. The best known of them is the
+TOP500~\cite{top500}, which ranks HPC platforms by their computational
+performance. In the I/O world, the community created}
+the IO500 benchmark suite\add{~\cite{io500list}.} \del{was designed for this
+purpose.}
+\add{IO500} is widely used to evaluate and rank the I/O performance of HPC storage
+systems, and it combines several workloads, including bandwidth-oriented and
+metadata-oriented operations, into a single score\replace{The benchmark results are also}{, which is} used to produce the IO500 ranking.\del{, which is
+published twice a year.}
+
+Because IO500 is a ranking, there is a direct incentive for HPC sites to
+obtain the best possible score\add{. For vendors and system integrators, a high
+position is a commercial argument, used in marketing material and in
+procurement discussions. For computing centres, it is a public and comparable
+demonstration that the machine they operate delivers the capability it was
+built for, which matters both for the visibility of the centre and for
+justifying the investment it represents}. \replace{
+The}{However, the} reported performance of a system \del{therefore} does not only depend on its
+hardware\replace{.
+It also depends}{, but also} on how the system is configured and how the benchmark is
+executed. \del{Finding a good configuration can consequently have a significant impact on the
+measured IO500 score.} \add{Finding a good configuration is therefore essential
+to obtain the highest possible score.}
+
+\add{However, there is a} \del{the} large number of possible configurations\add{, which} makes the tuning of IO500
+difficult\add{:} a configuration can involve several parameters, and each parameter can have
+multiple possible values.
+The combination of these parameters creates a potentially large search space,
+and finding a good configuration therefore requires evaluating many possible
+combinations.
+
+Another important difficulty is the cost of an IO500 evaluation.
+According to the IO500 submission rules\add{~\cite{io500rules}}, each write and
+create phase must run
+for at least \SI{300}{\second}\del{, using a stonewall timer set to 300
+seconds}.
+A run that finishes the write phase earlier is considered invalid.
+This requirement makes a valid IO500 measurement relatively expensive in terms
+of cluster time: on the target platform, one valid measurement takes
+approximately \SI{30}{\minute} of exclusive cluster time.
+When several configurations and repetitions are considered, the total cost
+becomes very large.  \add{For instance,} in the parameter space considered in this work, approximately
+\todoitem{confirm the exact number} $7{,}840$ configurations have to be
+evaluated.
+Measuring all of them with three repetitions would require approximately
+\SI{12000}{\hour} of wall-clock time, which corresponds to more than one year
+of computation on the target machine. \add{Therefore, } An exhaustive search is not practical.
+
+
+
+\del{Instead, practitioners often rely on their experience and knowledge of the
+system.
+Another possible approach is to change one parameter at a time and select the
+best value before moving to the next parameter.
+Such approaches can work in some cases, but they may miss interactions between
+parameters: a configuration that is optimal for one parameter independently is
+not necessarily optimal when several parameters are considered together.}
+
+
+This leads to the main research question of this internship:
+
+\begin{quote}
+    \itshape
+    Can a smarter search method find a near-optimal IO500 configuration using
+    far fewer evaluations, and which search method is most effective for this
+    problem?
+\end{quote}
+
+\del{The goal is therefore not simply to find a configuration with a high IO500
+score.
+It is also important to understand how many evaluations are required to find
+this configuration, and how different search strategies behave under a limited
+evaluation budget.}
+
+\subsection{Objectives of the internship}
+
+\add{The objective of this internship is to tune IO500 with a guided search
+instead of an exhaustive one, and to determine which search method should be
+used in practice. Bayesian Optimization is the main candidate, but it is a
+family of methods rather than a single one, so a large part of the work
+consists in comparing its variants, and comparing them against random and
+exhaustive search.}
+
+\add{The work is carried out with IOPS~\cite{iops}, a benchmark orchestration
+framework developed in the team. IOPS describes a parametric study in a single YAML file
+and takes care of generating the runs, submitting them to the cluster
+scheduler, parsing their output and caching the results. Two of its features
+matter here: the search strategy is a configuration option, so exhaustive,
+random and Bayesian searches can be compared without changing anything else;
+and a study can be replayed from the cache, which is what makes the offline
+comparison possible.}
+
+\subsection{Contributions}
+
+\add{The main contributions of this work are the following.}
+
+\begin{itemize}
+    \item \emph{A cheap ground-truth methodology} to evaluate search strategies
+          for tuning IO500, based on a set of invalid scores that are much
+          cheaper to generate but still allow the strategies to be compared.
+    \item \emph{A systematic comparison of Bayesian Optimization variants},
+          which identifies the setup that performs best and shows which of its
+          parameters actually matter.
+    \item \emph{A validation campaign} on the cluster, checking that the
+          configurations selected on the cheap proxy remain the best ones
+          under the official IO500 rules.
+\end{itemize}
+
+\subsection{Organisation of the report}
+
+% Turn the section names into cross-references (Section~\ref{sec:...}) once the
+% corresponding sections have been added to main.tex.
+\add{The remainder of this report is organised as follows. The next section
+presents the host laboratory and the environment in which the internship took
+place. The background section then introduces what is needed to read the rest
+of the report: the IO500 benchmark and its rules, the parameters exposed by
+parallel file systems, and the principles of Bayesian Optimization. Related
+work on I/O auto-tuning is reviewed next, followed by a description of the
+tools, the platform and the experimental setup. The methodology section
+explains how the ground truth was built and how the search strategies were
+compared, and the results section reports and analyses the measurements. The
+report closes with a discussion of the limitations of the study and a
+conclusion.}
